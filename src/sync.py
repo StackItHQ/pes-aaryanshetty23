@@ -129,7 +129,7 @@ def sync_db_to_sheet():
     logging.info(f"{result.get('updatedCells')} cells updated in Google Sheets")
 
 # Main function to manage synchronization in both directions
-def continuous_sync(interval=30):
+def continuous_sync(interval=20):
     while True:
         try:
             sync_sheet_to_db()  # Sync from Google Sheets to MySQL
@@ -139,6 +139,6 @@ def continuous_sync(interval=30):
         time.sleep(interval)  # Wait for the next sync cycle
 
 if __name__ == "__main__":
-    # Start continuous sync every 30 seconds
+    # Start continuous sync every 20 seconds
     logging.info("Starting the continuous synchronization process...")
-    continuous_sync(interval=30)
+    continuous_sync(interval=20)
