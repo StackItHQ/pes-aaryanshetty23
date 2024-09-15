@@ -42,10 +42,17 @@ def read_rows():
     cursor.execute("SELECT * FROM EmployeeData")
     return cursor.fetchall()
 
-def update_row(data):
+# Function to check if a row with the same employee_name (or unique field) already exists
+def get_row_by_employee_name(employee_name):
     cursor = db.cursor()
-    query = "UPDATE EmployeeData SET employee_name=%s, role=%s, email=%s, salary=%s WHERE id=%s"
-    cursor.execute(query, data)
+    query = "SELECT * FROM EmployeeData WHERE employee_name = %s"
+    cursor.execute(query, (employee_name,))
+    return cursor.fetchone()
+
+def update_row(data, employee_name):
+    cursor = db.cursor()
+    query = "UPDATE EmployeeData SET role=%s, email=%s, salary=%s WHERE employee_name=%s"
+    cursor.execute(query, data + (employee_name,))
     db.commit()
 
 def delete_row(row_id):
@@ -59,13 +66,6 @@ def fetch_sheet_data():
     result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range=RANGE_NAME).execute()
     return result.get('values', [])
 
-# Check if row already exists in the database
-def row_exists_in_db(row):
-    cursor = db.cursor()
-    query = "SELECT * FROM EmployeeData WHERE employee_name = %s AND role = %s AND email = %s AND salary = %s"
-    cursor.execute(query, tuple(row))
-    return cursor.fetchone() is not None
-
 # Sync Google Sheets data to MySQL
 def sync_sheet_to_db():
     logging.info("Syncing data from Google Sheets to MySQL...")
@@ -74,18 +74,29 @@ def sync_sheet_to_db():
     if not rows or len(rows) <= 1:
         logging.warning("No data found in Google Sheets to sync.")
         return
-    
+
     for row in rows[1:]:  # Skip the header
         if len(row) < 4:  # Ensure the row has enough data
             logging.warning(f"Skipping row with insufficient data: {row}")
             continue
-        print("monster",row)
-        # Check if the row already exists in the database
-        if not row_exists_in_db(row[1::]):
-            
-            create_row(tuple(row[1::]))  # Insert the row if it doesn't exist
+        
+        employee_name, role, email, salary = row[1], row[2], row[3], row[4]
+        
+        # Check if the row already exists based on employee_name
+        existing_row = get_row_by_employee_name(employee_name)
+        
+        if existing_row:
+            # If row exists and values are different, update the row
+            existing_role, existing_email, existing_salary = existing_row[2], existing_row[3], existing_row[4]
+            if role != existing_role or email != existing_email or salary != existing_salary:
+                logging.info(f"Updating row for employee: {employee_name}")
+                update_row((role, email, salary), employee_name)
+            else:
+                logging.info(f"Row for employee: {employee_name} is unchanged, skipping.")
         else:
-            logging.info(f"Row already exists in database, skipping: {row}")
+            # If the row doesn't exist, insert a new one
+            logging.info(f"Inserting new row for employee: {employee_name}")
+            create_row((employee_name, role, email, salary))
 
     logging.info("Data synchronized from Google Sheets to MySQL")
 
