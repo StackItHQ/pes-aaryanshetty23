@@ -52,3 +52,20 @@ def delete_row(row_id):
     query = "DELETE FROM EmployeeData WHERE id=%s"
     cursor.execute(query, (row_id,))
     db.commit()
+
+def sync_sheet_to_db():
+    rows = fetch_sheet_data()
+    for row in rows[1:]:  # Skip the header
+        create_row(tuple(row))
+    print("Data synchronized from Google Sheets to MySQL")
+
+def sync_db_to_sheet():
+    mysql_rows = read_rows()
+    body = {'values': [list(row) for row in mysql_rows]}
+    result = sheet.values().update(
+        spreadsheetId=SPREADSHEET_ID,
+        range=RANGE_NAME,
+        valueInputOption="RAW",
+        body=body
+    ).execute()
+    print(f"{result.get('updatedCells')} cells updated in Google Sheets")
