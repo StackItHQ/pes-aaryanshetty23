@@ -74,15 +74,16 @@ def sync_sheet_to_db():
     if not rows or len(rows) <= 1:
         logging.warning("No data found in Google Sheets to sync.")
         return
-
+    
     for row in rows[1:]:  # Skip the header
         if len(row) < 4:  # Ensure the row has enough data
             logging.warning(f"Skipping row with insufficient data: {row}")
             continue
-        
+        print("monster",row)
         # Check if the row already exists in the database
-        if not row_exists_in_db(row):
-            create_row(tuple(row))  # Insert the row if it doesn't exist
+        if not row_exists_in_db(row[1::]):
+            
+            create_row(tuple(row[1::]))  # Insert the row if it doesn't exist
         else:
             logging.info(f"Row already exists in database, skipping: {row}")
 
