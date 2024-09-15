@@ -59,19 +59,33 @@ def fetch_sheet_data():
     result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range=RANGE_NAME).execute()
     return result.get('values', [])
 
+# Check if row already exists in the database
+def row_exists_in_db(row):
+    cursor = db.cursor()
+    query = "SELECT * FROM EmployeeData WHERE employee_name = %s AND role = %s AND email = %s AND salary = %s"
+    cursor.execute(query, tuple(row))
+    return cursor.fetchone() is not None
+
 # Sync Google Sheets data to MySQL
 def sync_sheet_to_db():
     logging.info("Syncing data from Google Sheets to MySQL...")
     rows = fetch_sheet_data()
+
     if not rows or len(rows) <= 1:
         logging.warning("No data found in Google Sheets to sync.")
         return
 
     for row in rows[1:]:  # Skip the header
-        if len(row) < 4:  # Make sure the row has enough data
+        if len(row) < 4:  # Ensure the row has enough data
             logging.warning(f"Skipping row with insufficient data: {row}")
             continue
-        create_row(tuple(row))
+        
+        # Check if the row already exists in the database
+        if not row_exists_in_db(row):
+            create_row(tuple(row))  # Insert the row if it doesn't exist
+        else:
+            logging.info(f"Row already exists in database, skipping: {row}")
+
     logging.info("Data synchronized from Google Sheets to MySQL")
 
 # Sync MySQL data to Google Sheets
@@ -87,17 +101,20 @@ def sync_db_to_sheet():
     def convert_to_json_serializable(row):
         return [float(x) if isinstance(x, decimal.Decimal) else x for x in row]
     
-    body = {'values': [convert_to_json_serializable(row) for row in mysql_rows]}
-    
+    body = {
+        'values': [convert_to_json_serializable(row) for row in mysql_rows]
+    }
+
+    # Use append to prevent overwriting the header
+    sheet.values().clear(spreadsheetId=SPREADSHEET_ID, range="Sheet1!A2:E").execute()  # Clear rows below the header
     result = sheet.values().update(
         spreadsheetId=SPREADSHEET_ID,
-        range=RANGE_NAME,
+        range="Sheet1!A2",  # Start appending data from the second row
         valueInputOption="RAW",
         body=body
     ).execute()
     
     logging.info(f"{result.get('updatedCells')} cells updated in Google Sheets")
-
 
 # Main function to manage synchronization in both directions
 def continuous_sync(interval=30):
