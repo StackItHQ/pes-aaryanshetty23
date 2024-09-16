@@ -1,3 +1,4 @@
+[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/AHFn7Vbn)
 # Superjoin Hiring Assignment
 
 ### Welcome to Superjoin's hiring assignment! 🚀
@@ -44,11 +45,11 @@ Once you're done, make sure you **record a video** showing your project working.
 
 We have a checklist at the bottom of this README file, which you should update as your progress with your assignment. It will help us evaluate your project.
 
-- [ ] My code's working just fine! 🥳
-- [ ] I have recorded a video showing it working and embedded it in the README ▶️
-- [ ] I have tested all the normal working cases 😎
+- [-] My code's working just fine! 🥳
+- [-] I have recorded a video showing it working and embedded it in the README ▶️
+- [-] I have tested all the normal working cases 😎
 - [ ] I have even solved some edge cases (brownie points) 💪
-- [ ] I added my very planned-out approach to the problem at the end of this README 📜
+- [-] I added my very planned-out approach to the problem at the end of this README 📜
 
 ## Got Questions❓
 Feel free to check the discussions tab, you might get some help there. Check out that tab before reaching out to us. Also, did you know, the internet is a great place to explore? 😛
@@ -58,4 +59,29 @@ We're available at techhiring@superjoin.ai for all queries.
 All the best ✨.
 
 ## Developer's Section
-*Add your video here, and your approach to the problem (optional). Leave some comments for us here if you want, we will be reading this :)*
+## Approach and Project Details:
+
+For this project, the primary goal was to develop a solution for real-time synchronization between Google Sheets and a MySQL database. Here's a detailed overview of the approach I took:
+
+### 1. Setting Up Google Sheets API:
+The first step was setting up Google Sheets API credentials. I created a service account in Google Cloud and shared the Google Sheet with the service account's email. This allowed the Python script to read from and write to the Google Sheet using the Google API.
+
+### 2. MySQL Database Setup:
+I created a MySQL database (`SuperjoinDB`) with an `EmployeeData` table to store employee records. The table includes columns for employee name, role, email, and salary, with the `id` column being auto-incremented.
+
+### 3. Data Sync Logic:
+The core of the project revolves around two main synchronization functions:
+- **sync_sheet_to_db():** This function reads the data from Google Sheets and either inserts new rows or updates existing rows in the MySQL database based on the `employee_name` as the unique identifier. This ensures that no duplicates are created, and updates are handled correctly.
+- **sync_db_to_sheet():** This function reads data from MySQL and updates the Google Sheet, starting from the second row to avoid overwriting the header.
+
+### 4. Challenges Faced and Solutions:
+- **Handling Duplicates and Updates:** Initially, the system was creating duplicate entries when rows in Google Sheets were updated. I solved this by implementing a check based on the `employee_name` field and comparing existing data with new data. If there was a change, the system updated the row; otherwise, it skipped it.
+- **Google Sheets API Permissions:** Ensuring the service account had the correct permissions to access the Google Sheet was crucial. I had to configure the service account credentials and share the sheet with the correct email.
+
+### 5. Continuous Synchronization:
+To maintain real-time data synchronization, I implemented a `continuous_sync()` function that runs every 20 seconds, ensuring both Google Sheets and MySQL are kept in sync at all times.
+
+
+## Demo Video
+
+[Click here to watch the video demonstration](https://drive.google.com/file/d/13imNHgjjWefk6pcKQ8oCnw3oGCHKkwxf/view?usp=drive_link)
