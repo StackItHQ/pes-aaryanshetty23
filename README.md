@@ -80,3 +80,8 @@ The core of the project revolves around two main synchronization functions:
 
 ### 5. Continuous Synchronization:
 To maintain real-time data synchronization, I implemented a `continuous_sync()` function that runs every 20 seconds, ensuring both Google Sheets and MySQL are kept in sync at all times.
+
+
+## Demo Video
+
+[Click here to watch the video demonstration](https://drive.google.com/file/d/13imNHgjjWefk6pcKQ8oCnw3oGCHKkwxf/view?usp=drive_link)
